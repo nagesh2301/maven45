@@ -1,0 +1,51 @@
+pipeline
+{
+    agent any
+    stages
+    {
+        stage('Continuous Download')
+        {
+            steps
+            {
+                git 'https://github.com/nagesh2301/maven45.git'   
+            }
+        }
+        
+        stage('Continuous Build')
+        {
+            steps
+            {
+                sh 'mvn package'
+            }
+        }
+        
+        stage('Continuous Deployment')
+        {
+            steps
+            {
+                deploy adapters: [tomcat9(credentialsId: '7f645fa7-8ca2-4c7b-acfa-da0437dae0cf', path: '', url: 'http://172.31.21.218:8080')], contextPath: 'test1', war: '**/*.war'
+            }
+        }
+        
+        stage('Continuous Testing')
+        {
+            steps
+            {
+               git 'https://github.com/intelliqittrainings/FunctionalTesting.git'
+                 sh 'java -jar /var/lib/jenkins/workspace/DeclarativePipeline1/testing.jar'
+              
+            }
+        }
+        
+        stage('Continuous Delivery')
+        {
+            steps
+            {
+                input message: 'Need approval from Delivery Manager', submitter: 'manager'
+                deploy adapters: [tomcat9(credentialsId: '7f645fa7-8ca2-4c7b-acfa-da0437dae0cf', path: '', url: 'http://172.31.16.13:8080')], contextPath: 'prod1', war: '**/*.war'
+            }
+        }
+        
+        
+    }
+}
